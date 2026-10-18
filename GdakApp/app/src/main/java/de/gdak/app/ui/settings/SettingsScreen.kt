@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import de.gdak.app.BuildConfig
 import de.gdak.app.data.settings.ThemeMode
 
 private val themeOptions = listOf(
@@ -44,5 +45,15 @@ fun SettingsScreen(
                 Text(text = label, modifier = Modifier.padding(start = 8.dp))
             }
         }
+
+        Text(
+            text = "Version",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 24.dp),
+        )
+        Text(
+            text = "${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
+            modifier = Modifier.padding(top = 8.dp),
+        )
     }
 }
