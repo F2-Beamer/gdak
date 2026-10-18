@@ -43,8 +43,12 @@ class DatabaseImporter(private val context: Context, private val catalog: Databa
         val work = File(tmpDir, "$tmpId.work.db")
         val id = existing?.id ?: UUID.randomUUID().toString()
 
+        val sizeBytes = querySize(uri)
+        if (sizeBytes > MAX_IMPORT_BYTES) {
+            throw ImportException("Die Datei ist zu groß (maximal ${MAX_IMPORT_BYTES / (1024 * 1024)} MB).")
+        }
         // Streng: Quelle, Arbeitskopie und die Reserve müssen gleichzeitig Platz haben.
-        checkFreeSpace(tmpDir, querySize(uri) + (existingFile?.length() ?: 0L))
+        checkFreeSpace(tmpDir, sizeBytes + (existingFile?.length() ?: 0L))
 
         try {
             copyToFile(uri, source)
@@ -102,11 +106,24 @@ class DatabaseImporter(private val context: Context, private val catalog: Databa
         }
     }
 
+    /** Kopiert die Datei und bricht ab, sobald das Größenlimit überschritten wird (auch wenn die Größe unbekannt war). */
     private fun copyToFile(uri: Uri, target: File) {
         val input = context.contentResolver.openInputStream(uri)
             ?: throw ImportException("Die gewählte Datei kann nicht gelesen werden.")
         input.use { source ->
-            target.outputStream().use { output -> source.copyTo(output) }
+            target.outputStream().use { output ->
+                val buffer = ByteArray(DEFAULT_BUFFER_BYTES)
+                var total = 0L
+                while (true) {
+                    val read = source.read(buffer)
+                    if (read < 0) break
+                    total += read
+                    if (total > MAX_IMPORT_BYTES) {
+                        throw ImportException("Die Datei ist zu groß (maximal ${MAX_IMPORT_BYTES / (1024 * 1024)} MB).")
+                    }
+                    output.write(buffer, 0, read)
+                }
+            }
         }
     }
 
@@ -144,7 +161,8 @@ class DatabaseImporter(private val context: Context, private val catalog: Databa
             ).use { cursor ->
                 while (cursor.moveToNext()) names += cursor.getString(0)
             }
-            names.forEach { db.execSQL("DROP INDEX \"$it\"") }
+            // Namen stammen aus der importierten Datei: Anführungszeichen im Bezeichner verdoppeln.
+            names.forEach { db.execSQL("DROP INDEX \"${it.replace("\"", "\"\"")}\"") }
         }
     }
 
@@ -249,6 +267,11 @@ class DatabaseImporter(private val context: Context, private val catalog: Databa
     }
 
     private companion object {
+        /** Obergrenze für eine importierte GSAK-Datenbank. Schützt vor übergroßen oder manipulierten Dateien. */
+        const val MAX_IMPORT_BYTES = 512L * 1024 * 1024
+
+        const val DEFAULT_BUFFER_BYTES = 64 * 1024
+
         /** Anfang jeder SQLite-Datei (16 Bytes inkl. Abschluss-Null). */
         const val SQLITE_MAGIC = "SQLite format 3\u0000"
 
