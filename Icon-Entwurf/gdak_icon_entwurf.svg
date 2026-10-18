@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="432" height="432">
+  <rect width="108" height="108" rx="24" fill="#1E5AA8"/>
+  <!-- großes G -->
+  <path d="M68.4 31.6 A26 26 0 1 0 76 50" fill="none" stroke="#FFFFFF" stroke-width="13"/>
+  <rect x="52" y="44" width="24" height="12" fill="#FFFFFF"/>
+  <!-- gelbe Ente -->
+  <g transform="translate(70 76) scale(0.8) translate(-70 -74)">
+    <ellipse cx="70" cy="74" rx="18" ry="12" fill="#FFD21F" stroke="#FFFFFF" stroke-width="2.5"/>
+    <path d="M84 70 L92 60 L90 76 Z" fill="#FFD21F" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="60" cy="58" r="10" fill="#FFD21F" stroke="#FFFFFF" stroke-width="2.5"/>
+    <path d="M51 56 L39 61 Q37 65 40 66 L52 66 Z" fill="#FF7A1A" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="57" cy="55" r="3.2" fill="#FFFFFF"/>
+    <circle cx="56.4" cy="55" r="1.7" fill="#1E5AA8"/>
+  </g>
+</svg>
