@@ -1,0 +1,12 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+#Claude
+.claude/
+.agents/
+.expo/
+
+
+
+
+# Beispieldaten (lokal, nicht im Repo: Karte ca. 2,4 GB, persönliche Datenbanken, Fotos)
+Beispiele_und_Daten/
