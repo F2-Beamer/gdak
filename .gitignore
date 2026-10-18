@@ -10,3 +10,9 @@
 
 # Beispieldaten (lokal, nicht im Repo: Karte ca. 2,4 GB, persönliche Datenbanken, Fotos)
 Beispiele_und_Daten/
+
+# Release-Build-Ausgabe (APK, lokal erzeugt)
+/GdakApp/app/release/
+
+# Android Studio Projekteinstellungen
+/.idea/
