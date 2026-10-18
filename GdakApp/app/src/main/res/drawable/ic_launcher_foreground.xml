@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vordergrund des App-Icons: weiBes G und gelbe Ente mit schwarzem Rand. Motiv auf 85 % verkleinert, damit es in die sichere Zone passt. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.85"
+        android:scaleY="0.85">
+
+        <!-- großes G -->
+        <path
+            android:pathData="M68.4,31.6 A26,26 0 1,0 76,50"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="13" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M52,44 H76 V56 H52 Z" />
+
+        <!-- Schwanz -->
+        <path
+            android:fillColor="#FFD21F"
+            android:strokeColor="#111111"
+            android:strokeWidth="2"
+            android:strokeLineJoin="round"
+            android:pathData="M81.2,71.2 L88.4,63.2 L86,69.6 L89.2,71.2 L84.4,79.2 Z" />
+
+        <!-- Körper -->
+        <path
+            android:fillColor="#FFD21F"
+            android:strokeColor="#111111"
+            android:strokeWidth="2"
+            android:pathData="M55.6,76 A14.4,9.6 0 1,0 84.4,76 A14.4,9.6 0 1,0 55.6,76 Z" />
+
+        <!-- Flügel -->
+        <path
+            android:fillColor="#E8B600"
+            android:strokeColor="#111111"
+            android:strokeWidth="0.96"
+            android:strokeLineJoin="round"
+            android:pathData="M58.8,74.4 Q66,68.8 75.6,73.6 Q70.8,80.8 59.6,80 Z" />
+        <path
+            android:strokeColor="#111111"
+            android:strokeWidth="0.8"
+            android:strokeLineCap="round"
+            android:pathData="M63.6,75.2 Q67.6,74.4 71.6,75.2" />
+
+        <!-- Kopf -->
+        <path
+            android:fillColor="#FFD21F"
+            android:strokeColor="#111111"
+            android:strokeWidth="2"
+            android:pathData="M54,63.2 A8,8 0 1,0 70,63.2 A8,8 0 1,0 54,63.2 Z" />
+
+        <!-- Wange -->
+        <path
+            android:fillColor="#FFA040"
+            android:pathData="M62.32,67.2 A2.08,1.28 0 1,0 66.48,67.2 A2.08,1.28 0 1,0 62.32,67.2 Z" />
+
+        <!-- Schnabel oben -->
+        <path
+            android:fillColor="#FF7A1A"
+            android:strokeColor="#111111"
+            android:strokeWidth="1.2"
+            android:strokeLineJoin="round"
+            android:pathData="M54.8,60.8 L46,64.8 Q43.6,66.4 46,67.2 L54.8,64.8 Z" />
+
+        <!-- Schnabel unten -->
+        <path
+            android:fillColor="#E8600A"
+            android:strokeColor="#111111"
+            android:strokeWidth="0.96"
+            android:strokeLineJoin="round"
+            android:pathData="M54.8,64.8 L46.8,67.2 Q45.2,68.8 47.6,69.6 L55.6,69.6 Z" />
+
+        <!-- Auge -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:strokeColor="#111111"
+            android:strokeWidth="0.96"
+            android:pathData="M56.72,60 A2.88,2.88 0 1,0 62.48,60 A2.88,2.88 0 1,0 56.72,60 Z" />
+        <path
+            android:fillColor="#111111"
+            android:pathData="M58.4,60.4 A1.6,1.6 0 1,0 61.6,60.4 A1.6,1.6 0 1,0 58.4,60.4 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M60.08,59.68 A0.56,0.56 0 1,0 61.2,59.68 A0.56,0.56 0 1,0 60.08,59.68 Z" />
+    </group>
+</vector>
