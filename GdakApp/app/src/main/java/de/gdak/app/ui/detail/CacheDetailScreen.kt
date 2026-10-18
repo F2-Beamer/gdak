@@ -1,6 +1,9 @@
 package de.gdak.app.ui.detail
 
+import android.net.Uri
+import android.text.SpannableStringBuilder
 import android.text.method.LinkMovementMethod
+import android.text.style.URLSpan
 import android.widget.TextView
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -182,7 +185,20 @@ private fun SectionTitle(text: String) {
     Text(text = text, style = MaterialTheme.typography.titleMedium)
 }
 
-/** HTML-Text mit anklickbaren Links. Die Farbe folgt dem Design. */
+/**
+ * HTML-Text mit anklickbaren Links. Die Farbe folgt dem Design.
+ * Der Inhalt stammt aus importierten Datenbanken und ist nicht vertrauenswürdig:
+ * Nur `http`- und `https`-Links bleiben klickbar, alle anderen Ziele werden entfernt.
+ */
+private fun safeHtml(html: String): CharSequence {
+    val text = SpannableStringBuilder(HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY))
+    text.getSpans(0, text.length, URLSpan::class.java).forEach { span ->
+        val scheme = Uri.parse(span.url).scheme?.lowercase()
+        if (scheme != "http" && scheme != "https") text.removeSpan(span)
+    }
+    return text
+}
+
 @Composable
 private fun HtmlText(html: String) {
     val color = LocalContentColor.current.toArgb()
@@ -195,7 +211,7 @@ private fun HtmlText(html: String) {
         },
         update = { view ->
             view.setTextColor(color)
-            view.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
+            view.text = safeHtml(html)
         },
         modifier = Modifier.fillMaxWidth(),
     )

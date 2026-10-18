@@ -16,3 +16,11 @@ Beispiele_und_Daten/
 
 # Android Studio Projekteinstellungen
 /.idea/
+
+# Signierung: Keystores und Passwörter nie committen
+*.jks
+*.keystore
+keystore.properties
+
+# Icon-Entwürfe (lokal, nicht im Repo)
+/Icon-Entwurf/
