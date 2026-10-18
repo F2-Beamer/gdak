@@ -5,6 +5,7 @@ import android.text.SpannableStringBuilder
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.widget.TextView
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
@@ -110,6 +113,18 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
             .padding(bottom = 24.dp),
     ) {
         Text(text = cache.name, style = MaterialTheme.typography.titleLarge)
+        if (GC_CODE.matches(cache.code)) {
+            val uriHandler = LocalUriHandler.current
+            Text(
+                text = cache.code,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clickable { uriHandler.openUri("https://www.geocaching.com/geocache/${cache.code}") },
+            )
+        }
         Text(text = "Typ: ${cacheTypeLabel(cache.cacheType)}", modifier = Modifier.padding(top = 8.dp))
         Text(text = "Größe: ${containerLabel(cache.container)}")
         Text(
@@ -184,6 +199,9 @@ private fun SectionTitle(text: String) {
     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
     Text(text = text, style = MaterialTheme.typography.titleMedium)
 }
+
+/** Groundspeak-Codes (z. B. `GCY8YF`). Nur sie bekommen einen Link auf geocaching.com. */
+private val GC_CODE = Regex("GC[A-Z0-9]+", RegexOption.IGNORE_CASE)
 
 /**
  * HTML-Text mit anklickbaren Links. Die Farbe folgt dem Design.
