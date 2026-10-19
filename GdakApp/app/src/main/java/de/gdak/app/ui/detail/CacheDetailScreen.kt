@@ -7,8 +7,11 @@ import android.text.style.URLSpan
 import android.widget.TextView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,6 +23,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,7 +33,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -46,13 +53,15 @@ import de.gdak.app.ui.map.containerLabel
 import de.gdak.app.ui.map.formatDmm
 import de.gdak.app.ui.map.germanDate
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
 
 /**
- * Detailansicht eines Caches auf einer eigenen Seite: Beschreibungen, Hinweise, Notiz,
- * Wegpunkte, Attribute und die letzten Logs. Alles nur lesend.
+ * Detailansicht eines Caches auf einer eigenen Seite. Der Kopf mit Name und Kerndaten bleibt
+ * stehen, darunter wechseln Tabs zwischen Beschreibung, Hinweisen, Notiz, Attributen und Logs.
+ * Alles nur lesend.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,95 +111,153 @@ fun CacheDetailScreen(code: String, databasesViewModel: DatabasesViewModel, onBa
     }
 }
 
+/** Die Tabs der Detailansicht in ihrer Reihenfolge. */
+private enum class DetailTab(val label: String) {
+    DESCRIPTION("Beschreibung"),
+    HINTS("Hinweise"),
+    NOTES("Eigene Notizen"),
+    ATTRIBUTES("Attribute"),
+    LOGS("Logs"),
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
     val cache = detail.summary
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 24.dp),
-    ) {
-        Text(text = cache.name, style = MaterialTheme.typography.titleLarge)
-        if (GC_CODE.matches(cache.code)) {
-            val uriHandler = LocalUriHandler.current
+    val tabs = DetailTab.entries
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
+
+    Column(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            Text(text = cache.name, style = MaterialTheme.typography.titleLarge)
+            if (GC_CODE.matches(cache.code)) {
+                val uriHandler = LocalUriHandler.current
+                Text(
+                    text = cache.code,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clickable { uriHandler.openUri("https://www.geocaching.com/geocache/${cache.code}") },
+                )
+            }
+            Text(text = "Typ: ${cacheTypeLabel(cache.cacheType)}", modifier = Modifier.padding(top = 8.dp))
+            Text(text = "Größe: ${containerLabel(cache.container)}")
             Text(
-                text = cache.code,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier
-                    .padding(top = 4.dp)
-                    .clickable { uriHandler.openUri("https://www.geocaching.com/geocache/${cache.code}") },
+                text = String.format(
+                    Locale.GERMANY,
+                    "Difficulty: %.1f   Terrain: %.1f",
+                    cache.difficulty,
+                    cache.terrain,
+                ),
             )
+            if (cache.ownerName.isNotBlank()) Text(text = "Besitzer: ${cache.ownerName}")
+            if (cache.placedDate.isNotBlank()) Text(text = "Versteckt: ${germanDate(cache.placedDate)}")
+            Text(text = "Position: ${formatDmm(cache.latitude, cache.longitude)}")
+            val status = listOfNotNull(
+                "Gefunden".takeIf { cache.found },
+                "Nicht gefunden (DNF)".takeIf { cache.dnf },
+                "Archiviert".takeIf { cache.archived },
+            )
+            if (status.isNotEmpty()) Text(text = "Status: ${status.joinToString(" · ")}")
         }
-        Text(text = "Typ: ${cacheTypeLabel(cache.cacheType)}", modifier = Modifier.padding(top = 8.dp))
-        Text(text = "Größe: ${containerLabel(cache.container)}")
+
+        PrimaryScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            edgePadding = 16.dp,
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
+            tabs.forEachIndexed { index, tab ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    text = { Text(tab.label) },
+                )
+            }
+        }
+        HorizontalDivider()
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.Top,
+        ) { page ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp, bottom = 24.dp),
+            ) {
+                when (tabs[page]) {
+                    DetailTab.DESCRIPTION -> DescriptionTab(detail)
+                    DetailTab.HINTS -> if (detail.hints.isNotBlank()) {
+                        Text(text = detail.hints)
+                    } else {
+                        Text(text = "Keine Hinweise vorhanden.")
+                    }
+                    DetailTab.NOTES -> Text(text = cache.userNote.ifBlank { "Keine Notiz vorhanden." })
+                    DetailTab.ATTRIBUTES -> AttributesTab(detail)
+                    DetailTab.LOGS -> LogsTab(detail)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DescriptionTab(detail: CacheDetail) {
+    if (detail.shortDescription.isBlank() && detail.longDescription.isBlank() && detail.waypoints.isEmpty()) {
+        Text(text = "Keine Beschreibung vorhanden.")
+        return
+    }
+    if (detail.shortDescription.isNotBlank()) {
+        SectionTitle("Kurzbeschreibung")
+        HtmlText(detail.shortDescription)
+    }
+    if (detail.longDescription.isNotBlank()) {
+        SectionTitle("Beschreibung")
+        HtmlText(detail.longDescription)
+    }
+    if (detail.waypoints.isNotEmpty()) {
+        SectionTitle("Wegpunkte (${detail.waypoints.size})")
+        detail.waypoints.forEach { waypoint ->
+            Text(
+                text = "${waypoint.code} · ${waypoint.name}",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(text = "${waypoint.type} · ${formatDmm(waypoint.latitude, waypoint.longitude)}")
+        }
+    }
+}
+
+@Composable
+private fun AttributesTab(detail: CacheDetail) {
+    if (detail.attributes.isEmpty()) {
+        Text(text = "Keine Attribute vorhanden.")
+        return
+    }
+    detail.attributes.forEach { attribute ->
+        Text(text = "Attribut ${attribute.id}: ${if (attribute.positive) "ja" else "nein"}")
+    }
+}
+
+@Composable
+private fun LogsTab(detail: CacheDetail) {
+    if (detail.logs.isEmpty()) {
+        Text(text = "Keine Logs vorhanden.")
+        return
+    }
+    detail.logs.forEachIndexed { index, log ->
+        if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         Text(
-            text = String.format(
-                Locale.GERMANY,
-                "Difficulty: %.1f   Terrain: %.1f",
-                cache.difficulty,
-                cache.terrain,
-            ),
+            text = "${germanDate(log.date)} · ${log.type} · ${log.by}",
+            style = MaterialTheme.typography.titleSmall,
         )
-        if (cache.ownerName.isNotBlank()) Text(text = "Besitzer: ${cache.ownerName}")
-        if (cache.placedDate.isNotBlank()) Text(text = "Versteckt: ${germanDate(cache.placedDate)}")
-        Text(text = "Position: ${formatDmm(cache.latitude, cache.longitude)}")
-        val status = listOfNotNull(
-            "Gefunden".takeIf { cache.found },
-            "Nicht gefunden (DNF)".takeIf { cache.dnf },
-            "Archiviert".takeIf { cache.archived },
-        )
-        if (status.isNotEmpty()) Text(text = "Status: ${status.joinToString(" · ")}")
-
-        if (detail.shortDescription.isNotBlank()) {
-            SectionTitle("Kurzbeschreibung")
-            HtmlText(detail.shortDescription)
-        }
-        if (detail.longDescription.isNotBlank()) {
-            SectionTitle("Beschreibung")
-            HtmlText(detail.longDescription)
-        }
-        if (detail.hints.isNotBlank()) {
-            SectionTitle("Hinweise")
-            Text(text = detail.hints)
-        }
-
-        SectionTitle("Eigene Notiz")
-        Text(text = cache.userNote.ifBlank { "Keine Notiz vorhanden." })
-
-        if (detail.waypoints.isNotEmpty()) {
-            SectionTitle("Wegpunkte (${detail.waypoints.size})")
-            detail.waypoints.forEach { waypoint ->
-                Text(
-                    text = "${waypoint.code} · ${waypoint.name}",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                Text(text = "${waypoint.type} · ${formatDmm(waypoint.latitude, waypoint.longitude)}")
-            }
-        }
-
-        if (detail.attributes.isNotEmpty()) {
-            SectionTitle("Attribute")
-            detail.attributes.forEach { attribute ->
-                Text(text = "Attribut ${attribute.id}: ${if (attribute.positive) "ja" else "nein"}")
-            }
-        }
-
-        if (detail.logs.isNotEmpty()) {
-            SectionTitle("Logs (letzte ${detail.logs.size})")
-            detail.logs.forEach { log ->
-                Text(
-                    text = "${germanDate(log.date)} · ${log.type} · ${log.by}",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                if (log.text.isNotBlank()) Text(text = log.text)
-            }
-        }
+        if (log.text.isNotBlank()) Text(text = log.text, modifier = Modifier.padding(top = 4.dp))
     }
 }
 
