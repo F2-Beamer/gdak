@@ -9,9 +9,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MyLocation
@@ -33,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.doOnLayout
 import de.gdak.app.data.cachedb.CacheFilter
 import de.gdak.app.data.cachedb.CacheRepository
 import de.gdak.app.data.cachedb.CacheSummary
@@ -206,23 +211,25 @@ private fun OfflineMap(
         }
     }
 
+    // Wird beim Aufbau der MapView festgehalten. Später setzt die Kartenbewegung die gespeicherte
+    // Position schon, bevor der Standort eintrifft, und das Zentrieren würde sonst ausbleiben.
+    val centerOnStart = remember(mapView) { focus == null && positionState.center == null }
+
     LaunchedEffect(locationGranted) {
         if (locationGranted) {
             // Der Standortpunkt wird immer gezeigt. Zentriert wird nur beim allerersten Öffnen,
             // damit ein Ziel aus der Liste oder die letzte Kartenansicht erhalten bleiben.
+            // Erst nach dem Layout, weil die MapView vorher keine Größe hat und Zentrieren ignoriert.
             findLocation(context) { location ->
-                showLocation(
-                    mapView,
-                    marker,
-                    location,
-                    bounds,
-                    center = focus == null && positionState.center == null,
-                )
+                mapView.doOnLayout {
+                    showLocation(mapView, marker, location, bounds, center = centerOnStart)
+                }
             }
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Die Karte beginnt unter der Statusleiste, damit Uhrzeit, Empfang und Akku lesbar bleiben.
+    Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).clipToBounds()) {
         AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
         CacheSearchBar(
             searchText = filter.searchText,

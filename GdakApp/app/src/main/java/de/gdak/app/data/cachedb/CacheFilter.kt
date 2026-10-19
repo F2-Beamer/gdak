@@ -12,6 +12,11 @@ enum class CacheTypeGroup(val label: String, val gsakTypes: Set<String>) {
     TRADITIONAL("Traditionell", setOf("T")),
     MULTI("Multi-Cache", setOf("M")),
     MYSTERY("Mystery", setOf("U", "B")),
+    EVENT("Event-Cache", setOf("E")),
+    LAB("Lab-Cache", setOf("Q")),
+    WHERIGO("Wherigo", setOf("I")),
+    VIRTUAL("Virtuell", setOf("V")),
+    EARTH("EarthCache", setOf("R")),
     OTHER("Sonstige", emptySet()),
     ;
 

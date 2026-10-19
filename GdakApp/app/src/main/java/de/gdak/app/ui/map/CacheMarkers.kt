@@ -36,7 +36,9 @@ class CacheMarker(
 
 /**
  * Erzeugt die Symbole der Caches. Mystery-Caches (Typ U und B) zeigen ein blaues „M“,
- * Multi-Caches ein orangefarbenes „M“. Alle anderen Typen zeigen ein violettes „?“.
+ * Multi-Caches ein orangefarbenes „M“, Event-Caches (E) ein pinkes „E“, Lab-Caches (Q) ein
+ * türkises „L“, Wherigos (I) ein braunes „W“, Virtuelle Caches (V) ein grünes „V“ und
+ * EarthCaches (R) ein blaues Erde-Symbol. Alle anderen Typen zeigen ein violettes „?“.
  * Caches mit korrigierten Koordinaten bekommen einen roten Rand, gefundene ein Smiley unten rechts.
  * Archivierte Caches werden ausgegraut.
  *
@@ -89,18 +91,37 @@ class CacheSymbols(private val context: Context) {
         }
         canvas.drawCircle(center, center, radius - borderWidth / 2, border)
 
-        val text = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            alpha = opacity
-            textSize = size * 0.5f
-            textAlign = Paint.Align.CENTER
-            typeface = Typeface.DEFAULT_BOLD
+        val letter = symbolStyle.letter
+        if (letter != null) {
+            val text = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                alpha = opacity
+                textSize = size * 0.5f
+                textAlign = Paint.Align.CENTER
+                typeface = Typeface.DEFAULT_BOLD
+            }
+            val baseline = center - (text.descent() + text.ascent()) / 2
+            canvas.drawText(letter, center, baseline, text)
+        } else {
+            drawGlobe(canvas, center, radius, density, opacity)
         }
-        val baseline = center - (text.descent() + text.ascent()) / 2
-        canvas.drawText(symbolStyle.letter, center, baseline, text)
 
         if (found) drawSmiley(canvas, size, density, opacity)
         return bitmap
+    }
+
+    /** Weiße Erdkugel mit Äquator und Mittelmeridian, für den EarthCache. */
+    private fun drawGlobe(canvas: Canvas, center: Float, radius: Float, density: Float, opacity: Int) {
+        val globe = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1.5f * density
+            color = Color.WHITE
+            alpha = opacity
+        }
+        val inner = radius * 0.6f
+        canvas.drawCircle(center, center, inner, globe)
+        canvas.drawLine(center - inner, center, center + inner, center, globe)
+        canvas.drawOval(RectF(center - inner * 0.45f, center - inner, center + inner * 0.45f, center + inner), globe)
     }
 
     /** Gelbes Smiley-Zeichen in der rechten unteren Ecke des Symbols. */
@@ -142,7 +163,8 @@ class CacheSymbols(private val context: Context) {
         canvas.drawArc(mouthBounds, 20f, 140f, false, mouth)
     }
 
-    private class Style(val letter: String, val color: Int)
+    /** Buchstabe auf dem Symbol, oder `null` für das gezeichnete Erde-Symbol. */
+    private class Style(val letter: String?, val color: Int)
 
     private companion object {
         val RED = 0xFFD32F2F.toInt()
@@ -155,6 +177,11 @@ class CacheSymbols(private val context: Context) {
             CacheTypeGroup.TRADITIONAL to Style("T", 0xFF2E7D32.toInt()),
             CacheTypeGroup.MULTI to Style("M", 0xFFEF6C00.toInt()),
             CacheTypeGroup.MYSTERY to Style("M", 0xFF1565C0.toInt()),
+            CacheTypeGroup.EVENT to Style("E", 0xFFC2185B.toInt()),
+            CacheTypeGroup.LAB to Style("L", 0xFF00838F.toInt()),
+            CacheTypeGroup.WHERIGO to Style("W", 0xFF5D4037.toInt()),
+            CacheTypeGroup.VIRTUAL to Style("V", 0xFF689F38.toInt()),
+            CacheTypeGroup.EARTH to Style(null, 0xFF1E88E5.toInt()),
             CacheTypeGroup.OTHER to Style("?", 0xFF6A1B9A.toInt()),
         )
     }

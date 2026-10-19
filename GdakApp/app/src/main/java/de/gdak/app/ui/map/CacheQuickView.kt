@@ -99,6 +99,11 @@ internal fun cacheTypeLabel(cacheType: String): String = when (cacheType) {
     "T" -> "Traditionell"
     "M" -> "Multi-Cache"
     "U", "B" -> "Mystery"
+    "E" -> "Event-Cache"
+    "Q" -> "Lab-Cache"
+    "I" -> "Wherigo"
+    "V" -> "Virtueller Cache"
+    "R" -> "EarthCache"
     else -> "Typ $cacheType"
 }
 

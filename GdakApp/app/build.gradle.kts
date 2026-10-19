@@ -11,8 +11,8 @@ android {
         applicationId = "de.gdak.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "2.0.0"
+        versionCode = 2
+        versionName = "2.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -30,6 +30,15 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+// Dateiname der APK mit Versionsnummer, z. B. GDAK-2.1.0-debug.apk.
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("GDAK-${output.versionName.get()}-${variant.buildType}.apk")
+        }
     }
 }
 
