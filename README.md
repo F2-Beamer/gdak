@@ -82,4 +82,4 @@ Die Geräte-Tests brauchen einen laufenden Emulator oder ein angeschlossenes Ger
 
 ## Lizenz
 
-Noch nicht festgelegt.
+Copyright (C) 2026 F2-Beamer. GDAK steht unter der GNU General Public License Version 3 (GPL-3.0). Den vollständigen Lizenztext findest du in der Datei [LICENSE](LICENSE).
