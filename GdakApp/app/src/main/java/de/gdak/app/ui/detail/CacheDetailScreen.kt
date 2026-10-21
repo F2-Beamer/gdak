@@ -60,7 +60,7 @@ import java.util.Locale
 
 /**
  * Detailansicht eines Caches auf einer eigenen Seite. Der Kopf mit Name und Kerndaten bleibt
- * stehen, darunter wechseln Tabs zwischen Beschreibung, Hinweisen, Notiz, Attributen und Logs.
+ * stehen, darunter wechseln Tabs zwischen Details, Beschreibung, Hinweisen, Notiz, Attributen und Logs.
  * Alles nur lesend.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,6 +113,7 @@ fun CacheDetailScreen(code: String, databasesViewModel: DatabasesViewModel, onBa
 
 /** Die Tabs der Detailansicht in ihrer Reihenfolge. */
 private enum class DetailTab(val label: String) {
+    INFO("Details"),
     DESCRIPTION("Beschreibung"),
     HINTS("Hinweise"),
     NOTES("Eigene Notizen"),
@@ -143,25 +144,6 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
                         .clickable { uriHandler.openUri("https://www.geocaching.com/geocache/${cache.code}") },
                 )
             }
-            Text(text = "Typ: ${cacheTypeLabel(cache.cacheType)}", modifier = Modifier.padding(top = 8.dp))
-            Text(text = "Größe: ${containerLabel(cache.container)}")
-            Text(
-                text = String.format(
-                    Locale.GERMANY,
-                    "Difficulty: %.1f   Terrain: %.1f",
-                    cache.difficulty,
-                    cache.terrain,
-                ),
-            )
-            if (cache.ownerName.isNotBlank()) Text(text = "Besitzer: ${cache.ownerName}")
-            if (cache.placedDate.isNotBlank()) Text(text = "Versteckt: ${germanDate(cache.placedDate)}")
-            Text(text = "Position: ${formatDmm(cache.latitude, cache.longitude)}")
-            val status = listOfNotNull(
-                "Gefunden".takeIf { cache.found },
-                "Nicht gefunden (DNF)".takeIf { cache.dnf },
-                "Archiviert".takeIf { cache.archived },
-            )
-            if (status.isNotEmpty()) Text(text = "Status: ${status.joinToString(" · ")}")
         }
 
         PrimaryScrollableTabRow(
@@ -192,6 +174,7 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
                     .padding(top = 12.dp, bottom = 24.dp),
             ) {
                 when (tabs[page]) {
+                    DetailTab.INFO -> InfoTab(detail)
                     DetailTab.DESCRIPTION -> DescriptionTab(detail)
                     DetailTab.HINTS -> if (detail.hints.isNotBlank()) {
                         Text(text = detail.hints)
@@ -205,6 +188,31 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
             }
         }
     }
+}
+
+/** Kerndaten des Caches: Typ, Größe, Wertungen, Besitzer, Versteckdatum, Position und Status. */
+@Composable
+private fun InfoTab(detail: CacheDetail) {
+    val cache = detail.summary
+    Text(text = "Typ: ${cacheTypeLabel(cache.cacheType)}")
+    Text(text = "Größe: ${containerLabel(cache.container)}")
+    Text(
+        text = String.format(
+            Locale.GERMANY,
+            "Difficulty: %.1f   Terrain: %.1f",
+            cache.difficulty,
+            cache.terrain,
+        ),
+    )
+    if (cache.ownerName.isNotBlank()) Text(text = "Besitzer: ${cache.ownerName}")
+    if (cache.placedDate.isNotBlank()) Text(text = "Versteckt: ${germanDate(cache.placedDate)}")
+    Text(text = "Position: ${formatDmm(cache.latitude, cache.longitude)}")
+    val status = listOfNotNull(
+        "Gefunden".takeIf { cache.found },
+        "Nicht gefunden (DNF)".takeIf { cache.dnf },
+        "Archiviert".takeIf { cache.archived },
+    )
+    if (status.isNotEmpty()) Text(text = "Status: ${status.joinToString(" · ")}")
 }
 
 @Composable

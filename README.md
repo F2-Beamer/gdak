@@ -4,7 +4,7 @@ Eine native Android-App zum Ansehen von Geocaching-Daten offline, ein Nachbau de
 
 Die App ist **nur lesend**: Notizen, Logs und Status werden in der App nicht bearbeitet. Die Oberfläche ist ausschließlich auf Deutsch.
 
-> Status: Version 2.1.0 (versionCode 2) ist getestet. Die Anforderungen stehen in [`Anforderungen.md`](Anforderungen.md), die technische Umsetzung in [`Technikplan.md`](Technikplan.md).
+> Status: Version 2.1.1 (Build 3) ist getestet. Die Anforderungen stehen in [`Anforderungen.md`](Anforderungen.md), die technische Umsetzung in [`Technikplan.md`](Technikplan.md).
 
 ## Funktionen
 
@@ -17,9 +17,9 @@ Die App ist **nur lesend**: Notizen, Logs und Status werden in der App nicht bea
 - **Suche und Filter:** nach Code oder Name, Cache-Typ, Status (gefunden, nicht gefunden, DNF, archiviert), Difficulty und Terrain, Umkreis bis 100 km
 - **Liste:** dieselben Daten und Filter wie die Karte. Sortiert wird nach Entfernung zur Kartenmitte, sonst zur eigenen Position. Ohne bekannte Position wird nach Name sortiert.
 - **Schnellansicht:** Kerndaten, Typ, Größe, Difficulty/Terrain, Position, Besitzer, Versteckdatum und eigene Notiz
-- **Detailansicht:** Kopf mit Code und Name bleibt beim Scrollen stehen. Darunter wechseln wischbare Tabs zwischen **Beschreibung** (mit Wegpunkten), **Hinweisen**, **Eigenen Notizen**, **Attributen** und **Logs** (die letzten 20). Der GC-Code ist antippbar.
+- **Detailansicht:** Kopf mit Code und Name bleibt beim Scrollen stehen. Darunter wechseln wischbare Tabs zwischen **Details** (Typ, Größe, Wertungen, Besitzer, Versteckdatum, Position, Status), **Beschreibung** (mit Wegpunkten), **Hinweisen**, **Eigenen Notizen**, **Attributen** und **Logs** (die letzten 20). Der GC-Code ist antippbar.
 - **Darstellung:** Hell- und Dunkelmodus, Standard ist die Systemeinstellung
-- **Version:** Die Versionsnummer steht in den Einstellungen. Die APK heißt zum Beispiel `GDAK-2.1.0-debug.apk`.
+- **Version:** Die Versionsnummer steht in den Einstellungen. Die APK heißt zum Beispiel `GDAK-2.1.1-debug.apk`.
 
 ## Datenschutz und Speicherort
 
