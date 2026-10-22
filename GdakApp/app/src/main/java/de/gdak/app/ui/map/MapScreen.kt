@@ -9,20 +9,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,8 +44,12 @@ import de.gdak.app.ui.catalog.DatabasesViewModel
 import de.gdak.app.ui.catalog.MapsViewModel
 import de.gdak.app.ui.filter.CacheFilterSheet
 import de.gdak.app.ui.filter.CacheFilterViewModel
+import de.gdak.app.ui.common.EmptyState
 import de.gdak.app.ui.filter.CacheSearchBar
+import de.gdak.app.ui.filter.FilterIconButton
 import de.gdak.app.ui.location.LOCATION_PERMISSIONS
+import de.gdak.app.ui.theme.LocationBlue
+import androidx.compose.ui.graphics.toArgb
 import de.gdak.app.ui.location.findLocation
 import de.gdak.app.ui.location.hasLocationPermission
 import kotlinx.coroutines.Dispatchers
@@ -93,9 +92,11 @@ fun MapScreen(
     val filter by filterViewModel.filter.collectAsState()
 
     if (activeMap == null) {
-        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-            Text(text = "Keine Karte aktiv. Importiere unter „Verwaltung“ eine Karte und aktiviere sie.")
-        }
+        EmptyState(
+            icon = Icons.Filled.Map,
+            message = "Keine Karte aktiv. Importiere unter „Verwaltung“ eine Karte und aktiviere sie.",
+            modifier = Modifier.fillMaxSize(),
+        )
         return
     }
 
@@ -228,8 +229,8 @@ private fun OfflineMap(
         }
     }
 
-    // Die Karte beginnt unter der Statusleiste, damit Uhrzeit, Empfang und Akku lesbar bleiben.
-    Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).clipToBounds()) {
+    // Die Scaffold liefert bereits den Abstand zur Statusleiste, daher hier kein zweites Einrücken.
+    Box(modifier = Modifier.fillMaxSize().clipToBounds()) {
         AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
         CacheSearchBar(
             searchText = filter.searchText,
@@ -238,14 +239,14 @@ private fun OfflineMap(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .fillMaxWidth()
-                .padding(start = 16.dp, top = 16.dp, end = 88.dp),
+                .padding(start = 16.dp, top = 16.dp, end = 72.dp),
         )
-        // Positionsschaltfläche und Filter-Schaltfläche untereinander rechts oben.
+        // Positionsschaltfläche und Filter-Schaltfläche untereinander rechts oben, wie in der Liste.
         Column(
             modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            SmallFloatingActionButton(
+            FilledTonalIconButton(
                 onClick = {
                     if (locationGranted) {
                         findLocation(context, preferCurrent = true, onFound = showAtLocation)
@@ -256,13 +257,7 @@ private fun OfflineMap(
             ) {
                 Icon(Icons.Filled.MyLocation, contentDescription = "Auf aktuelle Position springen")
             }
-            SmallFloatingActionButton(
-                onClick = { showFilter = true },
-                containerColor = if (filter.isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = if (filter.isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
-            ) {
-                Icon(Icons.Filled.FilterList, contentDescription = "Filter")
-            }
+            FilterIconButton(active = filter.isActive, onClick = { showFilter = true })
         }
     }
 
@@ -334,7 +329,7 @@ private fun createLocationMarker(context: Context): Marker {
     val size = (20 * density).toInt()
     val drawable = GradientDrawable().apply {
         shape = GradientDrawable.OVAL
-        setColor(0xFF1976D2.toInt())
+        setColor(LocationBlue.toArgb())
         setStroke((3 * density).toInt(), Color.WHITE)
         setSize(size, size)
     }

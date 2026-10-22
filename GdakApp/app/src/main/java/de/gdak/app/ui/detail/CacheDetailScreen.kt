@@ -5,28 +5,33 @@ import android.text.SpannableStringBuilder
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.widget.TextView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,9 +42,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -48,6 +55,9 @@ import de.gdak.app.data.cachedb.CacheDetail
 import de.gdak.app.data.cachedb.CacheRepository
 import de.gdak.app.data.catalog.DatabaseCatalogRepository
 import de.gdak.app.ui.catalog.DatabasesViewModel
+import de.gdak.app.ui.common.EmptyState
+import de.gdak.app.ui.common.RatingBar
+import de.gdak.app.ui.format.formatRating
 import de.gdak.app.ui.map.cacheTypeLabel
 import de.gdak.app.ui.map.containerLabel
 import de.gdak.app.ui.map.formatDmm
@@ -56,16 +66,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.Locale
 
 /**
- * Detailansicht eines Caches auf einer eigenen Seite. Der Kopf mit Name und Kerndaten bleibt
- * stehen, darunter wechseln Tabs zwischen Details, Beschreibung, Hinweisen, Notiz, Attributen und Logs.
- * Alles nur lesend.
+ * Detailansicht eines Caches auf einer eigenen Seite. Der Kopf mit Name und Kennzahlen bleibt
+ * stehen, darunter wechseln Tabs zwischen Details, Beschreibung und Logs. Alles nur lesend.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CacheDetailScreen(code: String, databasesViewModel: DatabasesViewModel, onBack: () -> Unit) {
+fun CacheDetailScreen(code: String, databasesViewModel: DatabasesViewModel) {
     val context = LocalContext.current
     val activeDatabaseId by databasesViewModel.activeDatabaseId.collectAsState()
     val databaseFile: File? = activeDatabaseId
@@ -83,28 +91,20 @@ fun CacheDetailScreen(code: String, databasesViewModel: DatabasesViewModel, onBa
         loaded = true
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(code) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
+    // Die Leiste mit Zurück-Pfeil kommt von der übergeordneten Scaffold in GdakApp.
+    Scaffold { innerPadding ->
         val current = detail
         when {
-            databaseFile == null -> Text(
-                text = "Keine Datenbank aktiv.",
-                modifier = Modifier.padding(innerPadding).padding(16.dp),
+            databaseFile == null -> EmptyState(
+                icon = Icons.Filled.Storage,
+                message = "Keine Datenbank aktiv.",
+                modifier = Modifier.padding(innerPadding),
             )
             !loaded -> Text(text = "Lade …", modifier = Modifier.padding(innerPadding).padding(16.dp))
-            current == null -> Text(
-                text = "Cache nicht gefunden.",
-                modifier = Modifier.padding(innerPadding).padding(16.dp),
+            current == null -> EmptyState(
+                icon = Icons.Filled.SearchOff,
+                message = "Cache nicht gefunden.",
+                modifier = Modifier.padding(innerPadding),
             )
             else -> DetailContent(current, Modifier.padding(innerPadding))
         }
@@ -149,7 +149,7 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
         PrimaryScrollableTabRow(
             selectedTabIndex = pagerState.currentPage,
             edgePadding = 16.dp,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 12.dp),
         ) {
             tabs.forEachIndexed { index, tab ->
                 Tab(
@@ -179,9 +179,12 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
                     DetailTab.HINTS -> if (detail.hints.isNotBlank()) {
                         Text(text = detail.hints)
                     } else {
-                        Text(text = "Keine Hinweise vorhanden.")
+                        Text(text = "Keine Hinweise vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    DetailTab.NOTES -> Text(text = cache.userNote.ifBlank { "Keine Notiz vorhanden." })
+                    DetailTab.NOTES -> Text(
+                        text = cache.userNote.ifBlank { "Keine Notiz vorhanden." },
+                        color = if (cache.userNote.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    )
                     DetailTab.ATTRIBUTES -> AttributesTab(detail)
                     DetailTab.LOGS -> LogsTab(detail)
                 }
@@ -190,35 +193,101 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
     }
 }
 
-/** Kerndaten des Caches: Typ, Größe, Wertungen, Besitzer, Versteckdatum, Position und Status. */
+/** Schwierigkeit und Gelände als Balken, Größe als Text. Steht über den Tabs und bleibt beim Wechseln sichtbar. */
+@Composable
+private fun CacheStats(detail: CacheDetail, modifier: Modifier = Modifier) {
+    val cache = detail.summary
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        StatItem(label = "Schwierigkeit", value = cache.difficulty)
+        StatItem(label = "Gelände", value = cache.terrain)
+        Column {
+            Text(
+                text = "Größe",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(text = containerLabel(cache.container), style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Composable
+private fun StatItem(label: String, value: Double) {
+    Column {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RatingBar(rating = value)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(text = formatRating(value), style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+/** Kennzahlen als Balken, darunter die Kerndaten des Caches. */
 @Composable
 private fun InfoTab(detail: CacheDetail) {
     val cache = detail.summary
-    Text(text = "Typ: ${cacheTypeLabel(cache.cacheType)}")
-    Text(text = "Größe: ${containerLabel(cache.container)}")
-    Text(
-        text = String.format(
-            Locale.GERMANY,
-            "Difficulty: %.1f   Terrain: %.1f",
-            cache.difficulty,
-            cache.terrain,
-        ),
-    )
-    if (cache.ownerName.isNotBlank()) Text(text = "Besitzer: ${cache.ownerName}")
-    if (cache.placedDate.isNotBlank()) Text(text = "Versteckt: ${germanDate(cache.placedDate)}")
-    Text(text = "Position: ${formatDmm(cache.latitude, cache.longitude)}")
+    CacheStats(detail, modifier = Modifier.padding(bottom = 4.dp))
+    InfoRow(label = "Typ", value = cacheTypeLabel(cache.cacheType))
+    if (cache.ownerName.isNotBlank()) InfoRow(label = "Besitzer", value = cache.ownerName)
+    if (cache.placedDate.isNotBlank()) InfoRow(label = "Versteckt", value = germanDate(cache.placedDate))
+    InfoRow(label = "Position", value = formatDmm(cache.latitude, cache.longitude))
     val status = listOfNotNull(
         "Gefunden".takeIf { cache.found },
         "Nicht gefunden (DNF)".takeIf { cache.dnf },
         "Archiviert".takeIf { cache.archived },
     )
-    if (status.isNotEmpty()) Text(text = "Status: ${status.joinToString(" · ")}")
+    if (status.isNotEmpty()) InfoRow(label = "Status", value = status.joinToString(" · "))
+}
+
+@Composable
+private fun AttributesTab(detail: CacheDetail) {
+    if (detail.attributes.isEmpty()) {
+        Text(text = "Keine Attribute vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        return
+    }
+    detail.attributes.forEach { attribute ->
+        Text(text = "Attribut ${attribute.id}: ${if (attribute.positive) "ja" else "nein"}")
+    }
+}
+
+/** Eine Zeile mit Bezeichnung links und Wert rechts, durch eine Linie getrennt. */
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f).padding(start = 16.dp),
+        )
+    }
+    HorizontalDivider()
 }
 
 @Composable
 private fun DescriptionTab(detail: CacheDetail) {
     if (detail.shortDescription.isBlank() && detail.longDescription.isBlank() && detail.waypoints.isEmpty()) {
-        Text(text = "Keine Beschreibung vorhanden.")
+        Text(text = "Keine Beschreibung vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
     }
     if (detail.shortDescription.isNotBlank()) {
@@ -243,20 +312,9 @@ private fun DescriptionTab(detail: CacheDetail) {
 }
 
 @Composable
-private fun AttributesTab(detail: CacheDetail) {
-    if (detail.attributes.isEmpty()) {
-        Text(text = "Keine Attribute vorhanden.")
-        return
-    }
-    detail.attributes.forEach { attribute ->
-        Text(text = "Attribut ${attribute.id}: ${if (attribute.positive) "ja" else "nein"}")
-    }
-}
-
-@Composable
 private fun LogsTab(detail: CacheDetail) {
     if (detail.logs.isEmpty()) {
-        Text(text = "Keine Logs vorhanden.")
+        Text(text = "Keine Logs vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
     }
     detail.logs.forEachIndexed { index, log ->
@@ -272,7 +330,7 @@ private fun LogsTab(detail: CacheDetail) {
 @Composable
 private fun SectionTitle(text: String) {
     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-    Text(text = text, style = MaterialTheme.typography.titleMedium)
+    Text(text = text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 4.dp))
 }
 
 /** Groundspeak-Codes (z. B. `GCY8YF`). Nur sie bekommen einen Link auf geocaching.com. */
