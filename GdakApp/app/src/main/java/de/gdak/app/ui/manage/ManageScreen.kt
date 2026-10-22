@@ -3,21 +3,25 @@ package de.gdak.app.ui.manage
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -106,33 +110,19 @@ fun ManageScreen(mapsViewModel: MapsViewModel, databasesViewModel: DatabasesView
                 .padding(innerPadding)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(text = "Karten", style = MaterialTheme.typography.titleLarge)
-            Text(
-                text = "Es ist immer nur eine Karte aktiv. Tippe auf eine Karte, um sie zu aktivieren.",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-
-            Button(
-                onClick = { pickMap.launch(arrayOf("*/*")) },
-                enabled = !busy,
+            ManageSection(
+                title = "Karten",
+                description = "Es ist immer nur eine Karte aktiv. Tippe auf eine Karte, um sie zu aktivieren.",
+                importLabel = "Karte importieren",
+                importEnabled = !busy,
+                busy = busy,
+                onImport = { pickMap.launch(arrayOf("*/*")) },
             ) {
-                Icon(Icons.Filled.FileOpen, contentDescription = null)
-                Text(text = "Karte importieren", modifier = Modifier.padding(start = 8.dp))
-            }
-
-            if (busy) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 12.dp))
-            }
-
-            if (maps.isEmpty()) {
-                Text(
-                    text = "Noch keine Karte gespeichert.",
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-            } else {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
+                if (maps.isEmpty()) {
+                    EmptyText("Noch keine Karte gespeichert.")
+                } else {
                     maps.forEach { entry ->
                         MapRow(
                             entry = entry,
@@ -140,42 +130,22 @@ fun ManageScreen(mapsViewModel: MapsViewModel, databasesViewModel: DatabasesView
                             onSelect = { mapsViewModel.setActive(entry.id) },
                             onDelete = { entryToDelete = entry },
                         )
-                        HorizontalDivider()
                     }
                 }
             }
 
-            Text(
-                text = "Datenbanken",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(top = 24.dp),
-            )
-            Text(
-                text = "Es ist immer nur eine Datenbank aktiv. Beim Import werden die Caches standardmäßig " +
+            ManageSection(
+                title = "Datenbanken",
+                description = "Es ist immer nur eine Datenbank aktiv. Beim Import werden die Caches standardmäßig " +
                     "mit der gewählten Datenbank zusammengeführt.",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-
-            Button(
-                onClick = { pickDatabase.launch(arrayOf("*/*")) },
-                enabled = !databaseBusy,
+                importLabel = "Datenbank importieren",
+                importEnabled = !databaseBusy,
+                busy = databaseBusy,
+                onImport = { pickDatabase.launch(arrayOf("*/*")) },
             ) {
-                Icon(Icons.Filled.FileOpen, contentDescription = null)
-                Text(text = "Datenbank importieren", modifier = Modifier.padding(start = 8.dp))
-            }
-
-            if (databaseBusy) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 12.dp))
-            }
-
-            if (databases.isEmpty()) {
-                Text(
-                    text = "Noch keine Datenbank gespeichert.",
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-            } else {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
+                if (databases.isEmpty()) {
+                    EmptyText("Noch keine Datenbank gespeichert.")
+                } else {
                     databases.forEach { entry ->
                         DatabaseRow(
                             entry = entry,
@@ -183,7 +153,6 @@ fun ManageScreen(mapsViewModel: MapsViewModel, databasesViewModel: DatabasesView
                             onSelect = { databasesViewModel.setActive(entry.id) },
                             onDelete = { databaseToDelete = entry },
                         )
-                        HorizontalDivider()
                     }
                 }
             }
@@ -350,6 +319,74 @@ private fun TargetOption(label: String, selected: Boolean, onSelect: () -> Unit)
     }
 }
 
+/**
+ * Abschnitt einer Verwaltungsseite als Karte: Titel, Erklärung, Import-Schaltfläche und die Liste.
+ * Karten und Datenbanken sehen gleich aus, damit beide Bereiche einheitlich wirken.
+ */
+@Composable
+private fun ManageSection(
+    title: String,
+    description: String,
+    importLabel: String,
+    importEnabled: Boolean,
+    busy: Boolean,
+    onImport: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            Button(
+                onClick = onImport,
+                enabled = importEnabled,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            ) {
+                Icon(Icons.Filled.FileOpen, contentDescription = null)
+                Text(text = importLabel, modifier = Modifier.padding(start = 8.dp))
+            }
+            if (busy) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 12.dp))
+            }
+            Column(modifier = Modifier.padding(top = 8.dp)) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(vertical = 8.dp),
+    )
+}
+
+/** Kleines Kennzeichen hinter dem Namen des aktiven Eintrags. */
+@Composable
+private fun ActiveTag() {
+    Text(
+        text = "aktiv",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+    )
+}
+
 @Composable
 private fun MapRow(
     entry: MapEntry,
@@ -367,10 +404,14 @@ private fun MapRow(
     ) {
         RadioButton(selected = active, onClick = null)
         Column(modifier = Modifier.padding(start = 8.dp).weight(1f)) {
-            Text(text = entry.displayName, style = MaterialTheme.typography.bodyLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = entry.displayName, style = MaterialTheme.typography.bodyLarge)
+                if (active) ActiveTag()
+            }
             Text(
                 text = formatSize(entry.sizeBytes),
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         IconButton(onClick = onDelete) {
@@ -396,10 +437,14 @@ private fun DatabaseRow(
     ) {
         RadioButton(selected = active, onClick = null)
         Column(modifier = Modifier.padding(start = 8.dp).weight(1f)) {
-            Text(text = entry.displayName, style = MaterialTheme.typography.bodyLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = entry.displayName, style = MaterialTheme.typography.bodyLarge)
+                if (active) ActiveTag()
+            }
             Text(
                 text = "${entry.cacheCount} Caches",
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         IconButton(onClick = onDelete) {

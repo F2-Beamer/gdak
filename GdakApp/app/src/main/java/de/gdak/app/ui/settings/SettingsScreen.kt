@@ -1,10 +1,13 @@
 package de.gdak.app.ui.settings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -27,33 +30,46 @@ fun SettingsScreen(
     themeMode: ThemeMode,
     onThemeModeSelected: (ThemeMode) -> Unit,
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Darstellung", style = MaterialTheme.typography.titleMedium)
-        themeOptions.forEach { (mode, label) ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = mode == themeMode,
-                        onClick = { onThemeModeSelected(mode) },
-                        role = Role.RadioButton,
-                    )
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(selected = mode == themeMode, onClick = null)
-                Text(text = label, modifier = Modifier.padding(start = 8.dp))
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Darstellung", style = MaterialTheme.typography.titleMedium)
+                themeOptions.forEach { (mode, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = mode == themeMode,
+                                onClick = { onThemeModeSelected(mode) },
+                                role = Role.RadioButton,
+                            )
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = mode == themeMode, onClick = null)
+                        Text(text = label, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
             }
         }
 
-        Text(
-            text = "Version",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 24.dp),
-        )
-        Text(
-            text = "${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
-            modifier = Modifier.padding(top = 8.dp),
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Version", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
     }
 }

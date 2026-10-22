@@ -6,11 +6,14 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import de.gdak.app.ui.common.gdakTopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -53,12 +56,21 @@ private val destinations = listOf(
     Destination.Settings,
 )
 
+/** Titel der Leiste oben, `null` wenn der Screen keine eigene Leiste zeigt. */
+private fun titleFor(route: String?): String? = when (route) {
+    Destination.List.route -> Destination.List.label
+    Destination.Manage.route -> "Verwaltung"
+    Destination.Settings.route -> Destination.Settings.label
+    else -> null
+}
+
 /** Route der Detailansicht mit dem Cache-Code als Argument. */
 private const val DETAIL_ARG = "code"
 private const val DETAIL_ROUTE = "detail/{$DETAIL_ARG}"
 
 private fun detailRoute(code: String): String = "detail/$code"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GdakApp(
     settingsViewModel: SettingsViewModel = viewModel(),
@@ -76,6 +88,15 @@ fun GdakApp(
     val currentDestination = backStackEntry?.destination
 
     Scaffold(
+        topBar = {
+            // Karte hat keine Leiste, die Detailansicht bringt ihre eigene mit.
+            titleFor(currentDestination?.route)?.let { title ->
+                TopAppBar(
+                    title = { Text(title) },
+                    colors = gdakTopAppBarColors(),
+                )
+            }
+        },
         bottomBar = {
             NavigationBar {
                 destinations.forEach { destination ->

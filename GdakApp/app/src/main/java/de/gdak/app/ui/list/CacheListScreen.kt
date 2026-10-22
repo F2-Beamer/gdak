@@ -5,6 +5,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +38,8 @@ import de.gdak.app.data.cachedb.allowsDistance
 import de.gdak.app.data.catalog.DatabaseCatalogRepository
 import de.gdak.app.data.geo.distanceKm
 import de.gdak.app.ui.catalog.DatabasesViewModel
+import de.gdak.app.ui.common.EmptyState
+import de.gdak.app.ui.format.formatRating
 import de.gdak.app.ui.filter.CacheFilterSheet
 import de.gdak.app.ui.filter.CacheFilterViewModel
 import de.gdak.app.ui.filter.CacheSearchBar
@@ -130,9 +134,9 @@ fun CacheListScreen(
         )
 
         if (databaseFile == null) {
-            Text(
-                text = "Keine Datenbank aktiv. Importiere unter „Verwaltung“ eine Datenbank.",
-                modifier = Modifier.padding(horizontal = 16.dp),
+            EmptyState(
+                icon = Icons.Filled.Storage,
+                message = "Keine Datenbank aktiv. Importiere unter „Verwaltung“ eine Datenbank.",
             )
         } else {
             val hint = when {
@@ -160,7 +164,16 @@ fun CacheListScreen(
                             }
                         },
                         headlineContent = { Text(entry.cache.name) },
-                        supportingContent = { Text(supportingText(entry.cache)) },
+                        supportingContent = {
+                            Column {
+                                Text(typeAndSize(entry.cache))
+                                Text(
+                                    text = ratingLine(entry.cache),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
                         trailingContent = { entry.distanceKm?.let { Text(formatDistance(it)) } },
                         modifier = Modifier.clickable { selectedCache = entry.cache },
                     )
@@ -194,11 +207,11 @@ fun CacheListScreen(
     }
 }
 
-private fun supportingText(cache: CacheSummary): String =
-    "${cacheTypeLabel(cache.cacheType)} · ${containerLabel(cache.container)} · " +
-        "D ${rating(cache.difficulty)} / T ${rating(cache.terrain)}"
+private fun typeAndSize(cache: CacheSummary): String =
+    "${cacheTypeLabel(cache.cacheType)} · ${containerLabel(cache.container)}"
 
-private fun rating(value: Double): String = String.format(Locale.GERMANY, "%.1f", value)
+private fun ratingLine(cache: CacheSummary): String =
+    "Schw. ${formatRating(cache.difficulty)} · Gel. ${formatRating(cache.terrain)}"
 
 private fun formatDistance(km: Double): String =
     if (km < 1) {
