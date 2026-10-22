@@ -111,10 +111,13 @@ fun CacheDetailScreen(code: String, databasesViewModel: DatabasesViewModel) {
     }
 }
 
-/** Die Tabs der Detailansicht in ihrer Reihenfolge. Hinweis, Attribute und Notiz stehen unter „Details“. */
+/** Die Tabs der Detailansicht in ihrer Reihenfolge. */
 private enum class DetailTab(val label: String) {
     INFO("Details"),
     DESCRIPTION("Beschreibung"),
+    HINTS("Hinweise"),
+    NOTES("Eigene Notizen"),
+    ATTRIBUTES("Attribute"),
     LOGS("Logs"),
 }
 
@@ -141,7 +144,6 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
                         .clickable { uriHandler.openUri("https://www.geocaching.com/geocache/${cache.code}") },
                 )
             }
-            CacheStats(detail, modifier = Modifier.padding(top = 12.dp))
         }
 
         PrimaryScrollableTabRow(
@@ -174,6 +176,16 @@ private fun DetailContent(detail: CacheDetail, modifier: Modifier) {
                 when (tabs[page]) {
                     DetailTab.INFO -> InfoTab(detail)
                     DetailTab.DESCRIPTION -> DescriptionTab(detail)
+                    DetailTab.HINTS -> if (detail.hints.isNotBlank()) {
+                        Text(text = detail.hints)
+                    } else {
+                        Text(text = "Keine Hinweise vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    DetailTab.NOTES -> Text(
+                        text = cache.userNote.ifBlank { "Keine Notiz vorhanden." },
+                        color = if (cache.userNote.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    )
+                    DetailTab.ATTRIBUTES -> AttributesTab(detail)
                     DetailTab.LOGS -> LogsTab(detail)
                 }
             }
@@ -222,12 +234,12 @@ private fun StatItem(label: String, value: Double) {
     }
 }
 
-/** Kerndaten, dann Hinweis, Attribute und die eigene Notiz. */
+/** Kennzahlen als Balken, darunter die Kerndaten des Caches. */
 @Composable
 private fun InfoTab(detail: CacheDetail) {
     val cache = detail.summary
+    CacheStats(detail, modifier = Modifier.padding(bottom = 4.dp))
     InfoRow(label = "Typ", value = cacheTypeLabel(cache.cacheType))
-    InfoRow(label = "Größe", value = containerLabel(cache.container))
     if (cache.ownerName.isNotBlank()) InfoRow(label = "Besitzer", value = cache.ownerName)
     if (cache.placedDate.isNotBlank()) InfoRow(label = "Versteckt", value = germanDate(cache.placedDate))
     InfoRow(label = "Position", value = formatDmm(cache.latitude, cache.longitude))
@@ -237,28 +249,17 @@ private fun InfoTab(detail: CacheDetail) {
         "Archiviert".takeIf { cache.archived },
     )
     if (status.isNotEmpty()) InfoRow(label = "Status", value = status.joinToString(" · "))
+}
 
-    SectionTitle("Hinweis")
-    if (detail.hints.isNotBlank()) {
-        Text(text = detail.hints)
-    } else {
-        Text(text = "Keine Hinweise vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-
-    SectionTitle("Attribute")
+@Composable
+private fun AttributesTab(detail: CacheDetail) {
     if (detail.attributes.isEmpty()) {
         Text(text = "Keine Attribute vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-    } else {
-        detail.attributes.forEach { attribute ->
-            Text(text = "Attribut ${attribute.id}: ${if (attribute.positive) "ja" else "nein"}")
-        }
+        return
     }
-
-    SectionTitle("Eigene Notiz")
-    Text(
-        text = cache.userNote.ifBlank { "Keine Notiz vorhanden." },
-        color = if (cache.userNote.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-    )
+    detail.attributes.forEach { attribute ->
+        Text(text = "Attribut ${attribute.id}: ${if (attribute.positive) "ja" else "nein"}")
+    }
 }
 
 /** Eine Zeile mit Bezeichnung links und Wert rechts, durch eine Linie getrennt. */
