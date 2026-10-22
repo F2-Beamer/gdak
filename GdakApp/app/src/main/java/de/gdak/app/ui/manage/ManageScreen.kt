@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.gdak.app.data.catalog.DatabaseEntry
 import de.gdak.app.data.catalog.MapEntry
@@ -380,6 +381,7 @@ private fun ActiveTag() {
         text = "aktiv",
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onPrimaryContainer,
+        softWrap = false,
         modifier = Modifier
             .padding(start = 8.dp)
             .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
@@ -405,7 +407,13 @@ private fun MapRow(
         RadioButton(selected = active, onClick = null)
         Column(modifier = Modifier.padding(start = 8.dp).weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = entry.displayName, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = entry.displayName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
                 if (active) ActiveTag()
             }
             Text(
@@ -438,7 +446,13 @@ private fun DatabaseRow(
         RadioButton(selected = active, onClick = null)
         Column(modifier = Modifier.padding(start = 8.dp).weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = entry.displayName, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = entry.displayName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
                 if (active) ActiveTag()
             }
             Text(
