@@ -9,12 +9,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
@@ -232,8 +229,8 @@ private fun OfflineMap(
         }
     }
 
-    // Die Karte beginnt unter der Statusleiste, damit Uhrzeit, Empfang und Akku lesbar bleiben.
-    Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).clipToBounds()) {
+    // Die Scaffold liefert bereits den Abstand zur Statusleiste, daher hier kein zweites Einrücken.
+    Box(modifier = Modifier.fillMaxSize().clipToBounds()) {
         AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
         CacheSearchBar(
             searchText = filter.searchText,
