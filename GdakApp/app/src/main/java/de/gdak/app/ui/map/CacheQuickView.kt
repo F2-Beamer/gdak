@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.gdak.app.data.cachedb.CacheSummary
-import java.util.Locale
+import de.gdak.app.ui.format.formatRating
 
 /**
  * Schnellansicht eines Caches: Kerndaten und die eigene Notiz, nur lesend.
@@ -68,14 +68,7 @@ fun CacheQuickView(
                 modifier = Modifier.padding(top = 8.dp),
             )
             Text(text = "Größe: ${containerLabel(cache.container)}")
-            Text(
-                text = String.format(
-                    Locale.GERMANY,
-                    "Difficulty: %.1f   Terrain: %.1f",
-                    cache.difficulty,
-                    cache.terrain,
-                ),
-            )
+            Text(text = "Schwierigkeit ${formatRating(cache.difficulty)} · Gelände ${formatRating(cache.terrain)}")
             Text(text = "Position: ${formatDmm(cache.latitude, cache.longitude)}")
             if (cache.ownerName.isNotBlank()) Text(text = "Besitzer: ${cache.ownerName}")
             if (cache.placedDate.isNotBlank()) Text(text = "Versteckt: ${germanDate(cache.placedDate)}")
