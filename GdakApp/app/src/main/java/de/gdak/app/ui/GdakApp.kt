@@ -2,12 +2,14 @@ package de.gdak.app.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -89,12 +91,24 @@ fun GdakApp(
 
     Scaffold(
         topBar = {
-            // Karte hat keine Leiste, die Detailansicht bringt ihre eigene mit.
-            titleFor(currentDestination?.route)?.let { title ->
+            // Karte hat keine Leiste. Die Detailansicht zeigt den Cache-Code mit Zurück-Pfeil.
+            if (currentDestination?.route == DETAIL_ROUTE) {
                 TopAppBar(
-                    title = { Text(title) },
+                    title = { Text(backStackEntry?.arguments?.getString(DETAIL_ARG).orEmpty()) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                        }
+                    },
                     colors = gdakTopAppBarColors(),
                 )
+            } else {
+                titleFor(currentDestination?.route)?.let { title ->
+                    TopAppBar(
+                        title = { Text(title) },
+                        colors = gdakTopAppBarColors(),
+                    )
+                }
             }
         },
         bottomBar = {
@@ -155,7 +169,6 @@ fun GdakApp(
                 CacheDetailScreen(
                     code = entry.arguments?.getString(DETAIL_ARG).orEmpty(),
                     databasesViewModel = databasesViewModel,
-                    onBack = { navController.popBackStack() },
                 )
             }
             composable(Destination.Manage.route) {
