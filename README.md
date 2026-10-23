@@ -4,13 +4,13 @@ Eine native Android-App zum Ansehen von Geocaching-Daten offline, ein Nachbau de
 
 Die App ist **nur lesend**: Notizen, Logs und Status werden in der App nicht bearbeitet. Die Oberfläche ist ausschließlich auf Deutsch.
 
-> Status: Version 2.2.0 (Build 4) ist getestet. Die Anforderungen stehen in [`Anforderungen.md`](Anforderungen.md), die technische Umsetzung in [`Technikplan.md`](Technikplan.md).
+> Status: Version 2.2.1 (Build 5) ist getestet. Die Anforderungen stehen in [`Anforderungen.md`](Anforderungen.md), die technische Umsetzung in [`Technikplan.md`](Technikplan.md).
 
 ## Funktionen
 
 - **Offline-Karten:** Mapsforge-Karten (`.map`) über die Android-Dateiauswahl importieren, mehrere speichern, eine davon aktiv nutzen
 - **Cache-Datenbanken:** GSAK-Datenbanken (`.db3`) importieren, mit Zusammenführen nach Cache-Code oder „Vorher leeren“
-- **Karte:** Caches mit eigenem Symbol pro Typ, gefundene Caches mit Smiley, archivierte Caches ausgegraut, korrigierte Koordinaten mit rotem Rand. Die Karte zeigt höchstens 500 Caches. Sie beginnt unter der Statusleiste, damit Uhrzeit, Empfang und Akku lesbar bleiben.
+- **Karte:** Caches mit eigenem Symbol pro Typ, gefundene Caches mit Smiley, archivierte Caches ausgegraut, korrigierte Koordinaten mit rotem Rand. Die Karte zeigt höchstens 500 Caches. Der Bereich der Statusleiste ist schwarz, damit Uhrzeit, Empfang und Akku lesbar bleiben.
 - **Cache-Typen:** Traditionell (T), Multi-Cache (M), Mystery (U und B), Event-Cache (E), Lab-Cache (Q), Wherigo (I), Virtueller Cache (V), EarthCache (R). Alle anderen Typen erscheinen unter „Sonstige“ mit einem „?“. Jeder Typ hat im Filter eine eigene Auswahl.
 - **Eigene Position:** Standortmarkierung und Schaltfläche zum Zentrieren. Beim ersten Öffnen der App zentriert die Karte auf die aktuelle Position, sofern sie im Kartenbereich liegt. Sonst zeigt sie die Mitte der Kartendatei.
 - **Kartenansicht merken:** Die zuletzt gezeigte Ansicht bleibt erhalten, solange dieselbe Karte aktiv ist
@@ -19,7 +19,7 @@ Die App ist **nur lesend**: Notizen, Logs und Status werden in der App nicht bea
 - **Schnellansicht:** Kerndaten, Typ, Größe, Difficulty/Terrain, Position, Besitzer, Versteckdatum und eigene Notiz
 - **Detailansicht:** Kopf mit Code und Name bleibt beim Scrollen stehen. Darunter wechseln wischbare Tabs zwischen **Details** (Typ, Größe, Wertungen, Besitzer, Versteckdatum, Position, Status), **Beschreibung** (mit Wegpunkten), **Hinweisen**, **Eigenen Notizen**, **Attributen** und **Logs** (die letzten 20). Der GC-Code ist antippbar.
 - **Darstellung:** Hell- und Dunkelmodus, Standard ist die Systemeinstellung
-- **Version:** Die Versionsnummer steht in den Einstellungen. Die APK heißt zum Beispiel `GDAK-2.2.0-debug.apk`.
+- **Version:** Die Versionsnummer steht in den Einstellungen. Die APK heißt zum Beispiel `GDAK-2.2.1-debug.apk`.
 
 ## Datenschutz und Speicherort
 
