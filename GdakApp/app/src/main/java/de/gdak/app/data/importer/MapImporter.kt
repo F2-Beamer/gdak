@@ -26,6 +26,9 @@ class MapImporter(private val context: Context, private val catalog: MapCatalogR
 
     suspend fun import(uri: Uri, displayName: String): MapEntry {
         val sizeBytes = querySize(uri)
+        if (sizeBytes > MAX_IMPORT_BYTES) {
+            throw ImportException("Die Karte ist zu groß (maximal ${MAX_IMPORT_BYTES / (1024L * 1024 * 1024)} GB).")
+        }
         val directory = MapCatalogRepository.mapsDirectory(context)
         checkFreeSpace(directory, sizeBytes)
 
@@ -74,11 +77,24 @@ class MapImporter(private val context: Context, private val catalog: MapCatalogR
         }
     }
 
+    /** Kopiert die Datei und bricht ab, sobald das Größenlimit überschritten wird (auch wenn die Größe unbekannt war). */
     private fun copyToFile(uri: Uri, target: File) {
         val input = context.contentResolver.openInputStream(uri)
             ?: throw ImportException("Die gewählte Datei kann nicht gelesen werden.")
         input.use { source ->
-            target.outputStream().use { output -> source.copyTo(output) }
+            target.outputStream().use { output ->
+                val buffer = ByteArray(DEFAULT_BUFFER_BYTES)
+                var total = 0L
+                while (true) {
+                    val read = source.read(buffer)
+                    if (read < 0) break
+                    total += read
+                    if (total > MAX_IMPORT_BYTES) {
+                        throw ImportException("Die Karte ist zu groß (maximal ${MAX_IMPORT_BYTES / (1024L * 1024 * 1024)} GB).")
+                    }
+                    output.write(buffer, 0, read)
+                }
+            }
         }
     }
 
@@ -92,5 +108,10 @@ class MapImporter(private val context: Context, private val catalog: MapCatalogR
     private companion object {
         /** Anfang jeder Mapsforge-Karte. */
         const val MAGIC = "mapsforge binary OSM"
+
+        /** Obergrenze für eine Karte. Große Länder-Karten liegen im Bereich mehrerer GB. */
+        const val MAX_IMPORT_BYTES = 4L * 1024 * 1024 * 1024
+
+        const val DEFAULT_BUFFER_BYTES = 64 * 1024
     }
 }
