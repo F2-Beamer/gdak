@@ -33,6 +33,12 @@ Unter Windows heißt der Befehl `gradlew.bat`.
 - Passe dich dem vorhandenen Stil an: Namensgebung, Kommentardichte und Aufbau.
 - Keine Secrets, Keystores oder `local.properties` committen. Diese Dateien sind in `.gitignore` ausgeschlossen.
 
+## Release-APK signieren
+
+Die Release-APK wird mit einem eigenen Schlüssel signiert. Der Schlüssel (`.jks` oder `.keystore`) und seine Passwörter gehören nicht ins Repository. `.gitignore` schließt `*.jks`, `*.keystore` und `keystore.properties` aus.
+
+In Android Studio: **Build → Generate Signed App Bundle / APK** und dort den Schlüssel auswählen. Die Build-Konfiguration im Repository enthält keine Signierdaten.
+
 ## Sicherheitslücken
 
 Bitte melde Sicherheitslücken nicht über Pull Requests oder Issues. Nutze stattdessen die Funktion „Report a vulnerability“ im Tab **Security** des GitHub-Repositorys.

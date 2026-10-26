@@ -101,7 +101,16 @@ class MapImporter(private val context: Context, private val catalog: MapCatalogR
     private fun hasMapsforgeHeader(file: File): Boolean {
         val magic = MAGIC.toByteArray(Charsets.US_ASCII)
         val header = ByteArray(magic.size)
-        val read = file.inputStream().use { it.read(header) }
+        // read liefert möglicherweise weniger Bytes als angefordert, deshalb bis zur vollen Länge lesen.
+        val read = file.inputStream().use { input ->
+            var total = 0
+            while (total < header.size) {
+                val count = input.read(header, total, header.size - total)
+                if (count < 0) break
+                total += count
+            }
+            total
+        }
         return read == magic.size && header.contentEquals(magic)
     }
 

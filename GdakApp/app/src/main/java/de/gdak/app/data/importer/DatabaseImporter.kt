@@ -130,7 +130,16 @@ class DatabaseImporter(private val context: Context, private val catalog: Databa
     private fun hasSqliteHeader(file: File): Boolean {
         val magic = SQLITE_MAGIC.toByteArray(Charsets.US_ASCII)
         val header = ByteArray(magic.size)
-        val read = file.inputStream().use { it.read(header) }
+        // read liefert möglicherweise weniger Bytes als angefordert, deshalb bis zur vollen Länge lesen.
+        val read = file.inputStream().use { input ->
+            var total = 0
+            while (total < header.size) {
+                val count = input.read(header, total, header.size - total)
+                if (count < 0) break
+                total += count
+            }
+            total
+        }
         return read == magic.size && header.contentEquals(magic)
     }
 
@@ -145,7 +154,25 @@ class DatabaseImporter(private val context: Context, private val catalog: Databa
             if (missing.isNotEmpty()) {
                 throw ImportException("In der Tabelle „Caches“ fehlen Spalten: ${missing.joinToString()}.")
             }
+            val unknown = unknownTriggersAndViews(db)
+            if (unknown.isNotEmpty()) {
+                throw ImportException("Die Datei enthält unbekannte Trigger oder Ansichten: ${unknown.joinToString()}.")
+            }
         }
+    }
+
+    /** Liefert Trigger und Ansichten, die nicht zu den GSAK-Objekten gehören. Sie würden beim Schreiben fremdes SQL ausführen. */
+    private fun unknownTriggersAndViews(db: SQLiteDatabase): List<String> {
+        val unknown = mutableListOf<String>()
+        db.rawQuery("SELECT type, name FROM main.sqlite_master WHERE type IN ('trigger', 'view')", null).use { cursor ->
+            while (cursor.moveToNext()) {
+                val type = cursor.getString(0)
+                val name = cursor.getString(1)
+                val known = if (type == "trigger") name in KNOWN_TRIGGERS else name in KNOWN_VIEWS
+                if (!known) unknown += name
+            }
+        }
+        return unknown
     }
 
     /**
@@ -280,5 +307,16 @@ class DatabaseImporter(private val context: Context, private val catalog: Databa
 
         /** Tabellen, die beim Vorher-Leeren komplett geleert werden. */
         val CLEARED_TABLES = listOf("Caches", "CacheMemo", "Waypoints", "Logs")
+
+        /** Trigger, die GSAK in seinen Datenbanken anlegt. Andere Trigger führen fremdes SQL aus und werden abgelehnt. */
+        val KNOWN_TRIGGERS = setOf(
+            "Add_Caches", "Delete_Caches", "Delete_Logs", "Delete_Waypoints", "Insert_CacheID",
+            "Name_RemoveCr", "Name_RemoveCrlf", "Name_RemoveLf",
+            "Update_Caches_CacheId", "Update_Caches_Code", "Update_Logs_lLogId", "Update_Logs_lParent",
+            "Update_Waypoints_cCode", "Update_Waypoints_cParent",
+        )
+
+        /** Ansichten, die GSAK in seinen Datenbanken anlegt. Andere Ansichten werden abgelehnt. */
+        val KNOWN_VIEWS = setOf("AttName", "CachesAll", "LogsAll", "WayAll")
     }
 }
