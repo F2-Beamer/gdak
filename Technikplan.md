@@ -116,9 +116,10 @@ app/src/main/java/de/gdak/app/
 
 ## 9. Offene technische Punkte
 1. **Import-Tests fehlen:** siehe Abschnitt 8.
-2. **Kartenimport, Header-Prüfung (F4):** Die Prüfung liest den Kopf nur mit einem einzigen `read`-Aufruf. Ein kurzer Lesevorgang kann so einen gültigen Kopf verfehlen. Die Prüfung sollte in einer Schleife bis zur vollen Länge lesen.
-3. **Datenbank-Import, fremde Schemaobjekte (F3):** Der Import übernimmt Schemaobjekte aus der Quelldatei, die nicht zu den bekannten Tabellen gehören. Das ist noch nicht eingeschränkt.
-4. **Abhängigkeiten:** Eine Prüfung auf bekannte Schwachstellen in den Bibliotheken ist nicht erfolgt.
+2. **Kartenimport, Header-Prüfung (F4): erledigt (Commit `36f7afd`).** Die Prüfung liest den Kopf in einer Schleife bis zur vollen Länge. Gleiches Muster gilt für die SQLite-Kopfprüfung im Datenbank-Import.
+3. **Datenbank-Import, fremde Schemaobjekte (F3): erledigt (Commit `36f7afd`, Variante B).** Trigger und Ansichten, die nicht zu den GSAK-Objekten gehören, werden abgelehnt. Die Listen stehen in `DatabaseImporter` (`KNOWN_TRIGGERS`, `KNOWN_VIEWS`). Kommt in einer künftigen GSAK-Version ein neues Objekt dazu, muss der Name dort ergänzt werden.
+4. **Abhängigkeiten: teilweise geprüft.** Am 26.10.2026 wurden die direkten Abhängigkeiten und die aus Mapsforge und der Compose-BOM bekannten Versionen gegen die OSV-Datenbank geprüft. Es gab keine Treffer. Die vollständige Liste aller aufgelösten Artefakte ist noch nicht geprüft. Die Abdeckung von Google-Maven-Artefakten in OSV ist eingeschränkt.
+4a. **Sicherheitspunkte F6, F7, F8: erledigt (Commit `36f7afd`).** F6: `distributionSha256Sum` im Gradle-Wrapper. F7: R8 im Release-Build mit `proguard-rules.pro`. F8: Die Anleitung zum Signieren steht in `CONTRIBUTING.md`. Eine Signierkonfiguration im Build gibt es bewusst nicht.
 5. **Clustering:** Die Karte begrenzt auf 500 Symbole. Für größere Ausschnitte ist Clustering nicht umgesetzt.
 6. **Typ-Symbole:** Alle GSAK-Typen, die keiner Gruppe zugeordnet sind, landen in „Sonstige“ (Symbol „?“). Ob weitere Typen vorkommen, ist erst mit weiteren Datenbanken sicher.
 
