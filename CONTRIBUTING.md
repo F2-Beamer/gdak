@@ -35,4 +35,4 @@ Unter Windows heißt der Befehl `gradlew.bat`.
 
 ## Sicherheitslücken
 
-Bitte melde Sicherheitslücken nicht über Pull Requests oder Issues. Die Hinweise dazu stehen in [SECURITY.md](SECURITY.md).
+Bitte melde Sicherheitslücken nicht über Pull Requests oder Issues. Nutze stattdessen die Funktion „Report a vulnerability“ im Tab **Security** des GitHub-Repositorys.
